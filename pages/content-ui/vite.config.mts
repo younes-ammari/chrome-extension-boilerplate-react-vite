@@ -10,6 +10,7 @@ export default withPageConfig({
   resolve: {
     alias: {
       '@src': srcDir,
+      "@utils": resolve(rootDir, 'utils'),
     },
   },
   plugins: [IS_DEV && makeEntryPointPlugin()],

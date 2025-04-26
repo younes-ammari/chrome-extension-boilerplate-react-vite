@@ -3,9 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@src/*": ["src/*"]
+      "@src/*": ["src/*"],
+      "@utils/*": ["utils/*"]
     },
     "types": ["chrome", "node"]
   },
-  "include": ["src", "vite.config.mts"]
+  "include": ["src", "vite.config.mts", "utils"]
 }
