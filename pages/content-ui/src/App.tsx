@@ -51,7 +51,7 @@ export default function App() {
     <div
       className={cn(
         // 'dark',
-        'flex-col absolute bottom-5 right-7 z-[9999] flex items-center gap-2 rounded',
+        'flex-col absolute bottom-5 right-8 z-[9999] flex items-center gap-2 rounded',
         'py-4',
       )}>
       <PopWindow />
@@ -138,7 +138,7 @@ const PopWindow = (props: PopWindowProps) => {
     } finally {
       setTimeout(() => {
         setProcessing({ ...processing, copy: undefined });
-      }, 2000);
+      }, 1000);
     }
   };
 
@@ -164,22 +164,19 @@ const PopWindow = (props: PopWindowProps) => {
       setProcessing({
         ...processing,
         download: {
-          message: 'Error downloading code.',
+          message: 'Error downloading code. Retry!',
           type: 'error',
         },
       });
     } finally {
       setTimeout(() => {
         setProcessing({ ...processing, download: undefined });
-      }, 2000);
+      }, 1000);
     }
   };
 
   return (
-    <div className="flex flex-col gap-2 justify-end items-end transform transition-all duration-200 ease-out">
-      <p>
-        {processing.copy && 'copying...'}-{processing.download && 'downloading...'}
-      </p>
+    <div className="flex flex-col gap-2 justify-end items-end h-fit transform transition-all duration-200 ease-out">
       <button
         id="lvb-copy-btn"
         disabled={!enableCopy || processing.copy !== undefined}
@@ -228,7 +225,7 @@ const PopWindow = (props: PopWindowProps) => {
         {/* Download Code */}
       </button>
 
-      <div className="inline-block relative group">
+      <div className="inline-block relative group hidden">
         <button
           className="hover:bg-opacity-85 flex items-center justify-center bg-blue-600 text-white font-bold h-7 w-fit p-2 py-4 gap-1 rounded-md transition-colors duration-300 ease-out"
           aria-label="Open popup">
@@ -256,13 +253,13 @@ const PopWindow = (props: PopWindowProps) => {
         </div>
       </div>
 
-      {processing.copy && (
-        <MessageIndicator type={processing.copy.type} message={processing.copy.message} duration={1000} />
-      )}
+      <div className="min-h-8">
+        {processing.copy && <MessageIndicator type={processing.copy.type} message={processing.copy.message} />}
 
-      {processing.download && (
-        <MessageIndicator type={processing.download.type} message={processing.download.message} duration={1000} />
-      )}
+        {processing.download && (
+          <MessageIndicator type={processing.download.type} message={processing.download.message} />
+        )}
+      </div>
     </div>
   );
 };

@@ -100,25 +100,25 @@ function extractCodeFromEditor() {
  * Fetches the project source code listing from the API
  * @returns {Promise<Object>} The API response as JSON
  */
-async function fetchSourceCode(token: string): Promise<object> {
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    Accept: 'application/json',
-  };
+// async function fetchSourceCode(token: string): Promise<object> {
+//   const headers = {
+//     Authorization: `Bearer ${token}`,
+//     Accept: 'application/json',
+//   };
 
-  const API_URL = getProjectSourceApiUrl();
+//   const API_URL = getProjectSourceApiUrl();
 
-  if (!API_URL) {
-    throw new Error('Project source API URL is not available');
-  }
-  const response = await fetch(API_URL, { headers });
+//   if (!API_URL) {
+//     throw new Error('Project source API URL is not available');
+//   }
+//   const response = await fetch(API_URL, { headers });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch source code: ${response.status}`);
-  }
+//   if (!response.ok) {
+//     throw new Error(`Failed to fetch source code: ${response.status}`);
+//   }
 
-  return await response.json();
-}
+//   return await response.json();
+// }
 
 /**
  * Creates a zip file from the API response and triggers a download
@@ -245,89 +245,129 @@ export function attachButtons(publishBtn: HTMLButtonElement | null) {
 }
 
 /**
- * Handles the download button click event
- * @returns {Promise<void>}
+ * Fetches the project source code listing from the API
+ * @returns {Promise<Object>} The API response as JSON
  */
-export async function handleDownloadClick(): Promise<void> {
+async function fetchSourceCode(): Promise<{
+  files: Array<{
+    name: string;
+    contents?: string;
+    binary: boolean;
+  }>;
+} | null> {
   return new Promise((resolve, reject) => {
-    // dummy button for testing
-    const button = document.createElement('button') as HTMLButtonElement;
-
     chrome.runtime.sendMessage({ type: 'GET_SESSION_ID' }, async response => {
-      if (response?.success) {
-        const TOKEN = response.token;
-
-        if (!TOKEN) {
-          alert('Session token not found');
-          return reject(new Error('Session token not found'));
-        }
-
-        const span = button.querySelector('span');
-        const originalText = span?.textContent || 'Download code';
-
-        try {
-          // Update button state
-          if (span) span.textContent = 'Downloading...';
-          button.disabled = true;
-
-          // Fetch and download the source code
-          const data = (await fetchSourceCode(TOKEN)) as Promise<object>;
-          if (!data) {
-            console.error('❌ No data received from API');
-            return reject(new Error('No data received from API'));
-          }
-          await createAndDownloadZip(data as unknown as { files: any[] });
-
-          // Show success state
-          if (span) span.textContent = 'Downloaded!';
-          resolve();
-        } catch (error) {
-          console.error('❌ Download failed:', error);
-          if (span) span.textContent = 'Failed';
-          reject(error);
-        } finally {
-          setTimeout(() => {
-            if (span) span.textContent = originalText;
-            button.disabled = false;
-          }, 1500);
-        }
-      } else {
-        console.error('Failed to get session-id cookie:', response?.error);
+      if (!response?.success) {
         reject(new Error('Failed to get session-id cookie'));
+        return;
+      }
+
+      const token = response.token;
+      if (!token) {
+        reject(new Error('Session token not found'));
+        return;
+      }
+
+      try {
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        };
+
+        const API_URL = getProjectSourceApiUrl();
+        if (!API_URL) {
+          throw new Error('Project source API URL is not available');
+        }
+
+        const response = await fetch(API_URL, { headers });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch source code: ${response.status}`);
+        }
+
+        const data = await response.json();
+        resolve(data);
+      } catch (error) {
+        reject(error);
       }
     });
   });
 }
 
 /**
- * Handles the copy button click event
- * Extracts code from CodeMirror and copies to clipboard
- * @param {HTMLButtonElement} button - The button that was clicked
+ * Handles the download button click event
+ * @returns {Promise<void>}
  */
+export async function handleDownloadClick(): Promise<void> {
+  return new Promise(async (resolve, reject) => {
+    const button = document.createElement('button') as HTMLButtonElement;
+    const span = button.querySelector('span');
+    const originalText = span?.textContent || 'Download code';
+
+    try {
+      if (span) span.textContent = 'Downloading...';
+      button.disabled = true;
+
+      const data = await fetchSourceCode();
+      await createAndDownloadZip(data as { files: any[] });
+
+      if (span) span.textContent = 'Downloaded!';
+      resolve();
+    } catch (error) {
+      console.error('❌ Download failed:', error);
+      if (span) span.textContent = 'Failed';
+      reject(error);
+    } finally {
+      setTimeout(() => {
+        if (span) span.textContent = originalText;
+        button.disabled = false;
+      }, 1500);
+    }
+  });
+}
+
+/**
+ * Handles the copy button click event
+ * Extracts code from CodeMirror and copies to clipboard */
+
 export function handleCopyClick(): Promise<void> {
   return new Promise(async (resolve, reject) => {
+    // find element by role
+    const tablist = document.querySelector('div[role="tablist"]') as HTMLDivElement;
+    const filename = getSelectedTabFileName(tablist);
+
+    console.log('🖱️ filename', filename);
+    resolve();
     try {
-      // Extract code from CodeMirror editor with timeout protection
-      const extractionPromise = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Code extraction timed out'));
-        }, 3000);
+      const codeSource = await fetchSourceCode();
 
-        try {
-          const codeText = extractCodeFromEditor();
-          clearTimeout(timeout);
-          resolve(codeText);
-        } catch (err) {
-          clearTimeout(timeout);
-          reject(err);
-        }
-      });
-
-      const codeText = (await extractionPromise) as string;
-
-      if (!codeText || codeText.trim().length === 0) {
-        throw new Error('No code content found to copy');
+      const files = codeSource?.files || [];
+      const file = files.filter(f => f.binary === false).find(file => file.name === filename);
+      if (!file) {
+        throw new Error(`File not found: ${filename}`);
       }
+
+      const codeText = file.contents || '';
+      // Extract code from CodeMirror editor with timeout protection
+      // const extractionPromise = new Promise((resolve, reject) => {
+      //   const timeout = setTimeout(() => {
+      //     reject(new Error('Code extraction timed out'));
+      //   }, 3000);
+
+      //   try {
+      //     const codeText = extractCodeFromEditor();
+      //     clearTimeout(timeout);
+      //     resolve(codeText);
+      //   } catch (err) {
+      //     clearTimeout(timeout);
+      //     reject(err);
+      //   }
+      // });
+
+      // const codeText = (await extractionPromise) as string;
+
+      // if (!codeText || codeText.trim().length === 0) {
+      //   throw new Error('No code content found to copy');
+      // }
 
       console.log(`📋 Copying ${codeText.length} chars of code: ${codeText.substring(0, 50)}...`);
 
@@ -356,6 +396,29 @@ export function handleCopyClick(): Promise<void> {
       reject(err);
     }
   });
+}
+
+/**
+ * Get the filename of the currently selected tab.
+ *
+ * @param {string|HTMLElement} tablistSelector  A CSS selector or the <div role="tablist"> element itself.
+ * @returns {string|null}  The text of the selected tab, or null if none.
+ */
+function getSelectedTabFileName(tablistSelector: string | HTMLElement): string | null {
+  // resolve element
+  const container = typeof tablistSelector === 'string' ? document.querySelector(tablistSelector) : tablistSelector;
+  if (!container) {
+    console.warn('Tablist container not found:', tablistSelector);
+    return null;
+  }
+
+  // find the active tab button
+  const activeTab = container.querySelector('[role="tab"][aria-selected="true"], [role="tab"][data-state="active"]');
+  if (!activeTab) return null;
+
+  // grab the inner <span> if present, otherwise fall back to button text
+  const span = activeTab.querySelector('span');
+  return span?.textContent?.trim() ?? activeTab.textContent?.trim() ?? '';
 }
 
 // function getLovableSessionId() {
