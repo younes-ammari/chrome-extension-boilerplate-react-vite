@@ -1,9 +1,17 @@
-import React, { useEffect, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useEffect, useState } from 'react';
 // import { ToggleButton } from '@extension/ui';
 // import { exampleThemeStorage } from '@extension/storage';
 // import { t } from '@extension/i18n';
-import { attachButtons, findPublishButton, handleCopyClick, handleDownloadClick } from '@utils/content-func';
-import { cn, MessageIndicator, MessageIndicatorProps, ToggleButton } from '@extension/ui';
+import {
+  attachButtons,
+  findPublishButton,
+  getSelectedTabFileName,
+  handleCopyClick,
+  handleDownloadClick,
+} from '@utils/content-func';
+import type { MessageIndicatorProps } from '@extension/ui';
+import { cn, MessageIndicator } from '@extension/ui';
 
 export default function App() {
   const [rendered, setRendered] = useState(false);
@@ -48,12 +56,7 @@ export default function App() {
   if (!rendered) return <p>Loading...</p>;
 
   return (
-    <div
-      className={cn(
-        // 'dark',
-        'flex-col absolute bottom-5 right-8 z-[9999] flex items-center gap-2 rounded',
-        'py-4',
-      )}>
+    <div className={cn('flex-col absolute bottom-5 right-8 z-[9999] flex items-center gap-2 rounded', 'py-4')}>
       <PopWindow />
     </div>
   );
@@ -68,31 +71,35 @@ export default function App() {
   );
 }
 
-type PopWindowProps = {
-  className?: string;
-};
-
-const PopWindow = (props: PopWindowProps) => {
+const PopWindow = () => {
   const [enableCopy, setEnableCopy] = useState(false);
 
   useEffect(() => {
     function updateCopyState() {
-      const enabled =
-        document.querySelector('button[aria-label="Code viewer"]')?.getAttribute('aria-pressed') === 'true';
-      setEnableCopy(enabled || false);
+      const enabled = getSelectedTabFileName() ? true : false;
+      setEnableCopy(enabled);
     }
 
     // Initial state
     updateCopyState();
 
-    // Watch for clicks on the Code viewer button
-    const codeViewer = document.querySelector('button[aria-label="Code viewer"]');
-    codeViewer?.addEventListener('click', () => {
-      setTimeout(updateCopyState, 0);
+    // Watch for changes in the code viewer content
+    const observer = new MutationObserver(() => {
+      updateCopyState();
     });
 
+    // Find the code viewer content element and observe it
+    const codeViewerContent = document;
+    if (codeViewerContent) {
+      observer.observe(codeViewerContent, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    }
+
     return () => {
-      codeViewer?.removeEventListener('click', updateCopyState);
+      observer.disconnect();
     };
   }, []);
 
@@ -107,6 +114,7 @@ const PopWindow = (props: PopWindowProps) => {
   }>({});
 
   const handleCopy = async () => {
+    // return console.log(getSelectedTabFileName());
     setProcessing({
       ...processing,
       copy: {
@@ -197,7 +205,7 @@ const PopWindow = (props: PopWindowProps) => {
         {/* Copy */}
       </button>
 
-      <button
+      {/* <button
         id="lvb-download-btn"
         disabled={processing.download !== undefined}
         onClick={handleDownload}
@@ -222,10 +230,9 @@ const PopWindow = (props: PopWindowProps) => {
             strokeLinejoin="round"
           />
         </svg>
-        {/* Download Code */}
-      </button>
+      </button> */}
 
-      <div className="inline-block relative group hidden">
+      {/* <div className="inline-block relative group hidden">
         <button
           className="hover:bg-opacity-85 flex items-center justify-center bg-blue-600 text-white font-bold h-7 w-fit p-2 py-4 gap-1 rounded-md transition-colors duration-300 ease-out"
           aria-label="Open popup">
@@ -251,7 +258,7 @@ const PopWindow = (props: PopWindowProps) => {
             <li>Popup Item 3</li>
           </ul>
         </div>
-      </div>
+      </div> */}
 
       <div className="min-h-8">
         {processing.copy && <MessageIndicator type={processing.copy.type} message={processing.copy.message} />}

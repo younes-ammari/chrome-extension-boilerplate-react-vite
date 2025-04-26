@@ -33,13 +33,13 @@ const manifest = {
   // permissions: ['storage', 'scripting', 'tabs', 'notifications', 'sidePanel'],
   permissions: ['clipboardWrite', 'cookies', 'storage', 'sidePanel', 'scripting', 'notifications', 'sidePanel'],
   host_permissions: ['https://lovable-api.com/*', 'https://lovable.dev/*'],
-  options_page: 'options/index.html',
+  // options_page: 'options/index.html',
   background: {
     service_worker: 'background.js',
     type: 'module',
   },
   action: {
-    default_popup: 'popup/index.html',
+    // default_popup: 'popup/index.html',
     default_icon: 'icon-34.png',
   },
   chrome_url_overrides: {
@@ -69,9 +69,9 @@ const manifest = {
       matches: ['*://*/*'],
     },
   ],
-  side_panel: {
-    default_path: 'side-panel/index.html',
-  },
+  // side_panel: {
+  //   default_path: 'side-panel/index.html',
+  // },
 } satisfies chrome.runtime.ManifestV3;
 
 export default manifest;

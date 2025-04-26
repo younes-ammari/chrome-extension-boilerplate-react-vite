@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import JSZip from 'jszip';
 import { getProjectSourceApiUrl } from './func';
 import Cookies from 'js-cookie';
@@ -308,7 +309,10 @@ export async function handleDownloadClick(): Promise<void> {
       button.disabled = true;
 
       const data = await fetchSourceCode();
-      await createAndDownloadZip(data as { files: any[] });
+      if (!data) {
+        throw new Error('No data received from API');
+      }
+      await createAndDownloadZip(data);
 
       if (span) span.textContent = 'Downloaded!';
       resolve();
@@ -332,11 +336,14 @@ export async function handleDownloadClick(): Promise<void> {
 export function handleCopyClick(): Promise<void> {
   return new Promise(async (resolve, reject) => {
     // find element by role
-    const tablist = document.querySelector('div[role="tablist"]') as HTMLDivElement;
-    const filename = getSelectedTabFileName(tablist);
+    const filename = getSelectedTabFileName();
+    if (!filename) {
+      console.warn('❌ No file selected in tablist');
+      reject(new Error('No file selected in tablist'));
+      return;
+    }
 
-    console.log('🖱️ filename', filename);
-    resolve();
+    // resolve();
     try {
       const codeSource = await fetchSourceCode();
 
@@ -345,6 +352,8 @@ export function handleCopyClick(): Promise<void> {
       if (!file) {
         throw new Error(`File not found: ${filename}`);
       }
+
+      // console.log('🖱️ filename', filename);
 
       const codeText = file.contents || '';
       // Extract code from CodeMirror editor with timeout protection
@@ -369,7 +378,7 @@ export function handleCopyClick(): Promise<void> {
       //   throw new Error('No code content found to copy');
       // }
 
-      console.log(`📋 Copying ${codeText.length} chars of code: ${codeText.substring(0, 50)}...`);
+      // console.log(`📋 Copying ${codeText.length} chars of code: ${codeText.substring(0, 50)}...`);
 
       // Use clipboard API with timeout protection
       const clipboardPromise = new Promise<void>((resolve, reject) => {
@@ -404,8 +413,10 @@ export function handleCopyClick(): Promise<void> {
  * @param {string|HTMLElement} tablistSelector  A CSS selector or the <div role="tablist"> element itself.
  * @returns {string|null}  The text of the selected tab, or null if none.
  */
-function getSelectedTabFileName(tablistSelector: string | HTMLElement): string | null {
+export function getSelectedTabFileName(tablistSelectorValue?: string | HTMLElement): string | null {
   // resolve element
+  const tablistSelector = tablistSelectorValue || (document.querySelector('div[role="tablist"]') as HTMLDivElement);
+
   const container = typeof tablistSelector === 'string' ? document.querySelector(tablistSelector) : tablistSelector;
   if (!container) {
     console.warn('Tablist container not found:', tablistSelector);

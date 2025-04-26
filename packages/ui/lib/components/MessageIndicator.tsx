@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { cn } from '../utils';
 
 export interface MessageIndicatorProps {
   /** Type of message */
@@ -87,7 +89,10 @@ export const MessageIndicator: React.FC<MessageIndicatorProps> = ({ type, messag
 
   return (
     <div
-      className={` bottom-4 right-4 flex items-center px-2 py-1 rounded-md shadow-md space-x-2 ${config.bg} ${config.text}`}>
+      className={cn(
+        'p-4 pointer-events-none',
+        `bottom-4 right-4 flex items-center px-2 py-1 rounded-md shadow-md space-x-2 ${config.bg} ${config.text}`,
+      )}>
       {config.icon}
       <span className="font-xs">{message || config.defaultMessage}</span>
     </div>
