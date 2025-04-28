@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "Chrome extension boilerplate developed with Vite, React and Typescript"
+    "message": "Copy any project's source code with one click from Lovable Code using this extension - developed by shihab soft"
   },
   "extensionName": {
     "description": "Extension name",
-    "message": "Chrome extension boilerplate"
+    "message": "Copyable : Lovable code copy extension"
   },
   "toggleTheme": {
     "message": "Toggle theme"

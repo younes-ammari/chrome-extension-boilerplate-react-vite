@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { readFileSync } from 'node:fs';
 
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
@@ -21,17 +22,24 @@ const manifest = {
   manifest_version: 3,
   default_locale: 'en',
   name: '__MSG_extensionName__',
-  browser_specific_settings: {
-    gecko: {
-      id: 'example@example.com',
-      strict_min_version: '109.0',
-    },
-  },
+  // browser_specific_settings: {
+  //   gecko: {
+  //     id: 'example@example.com',
+  //     strict_min_version: '109.0',
+  //   },
+  // },
   version: packageJson.version,
   description: '__MSG_extensionDescription__',
   // host_permissions: ['<all_urls>'],
   // permissions: ['storage', 'scripting', 'tabs', 'notifications', 'sidePanel'],
-  permissions: ['clipboardWrite', 'cookies', 'storage', 'sidePanel', 'scripting', 'notifications', 'sidePanel'],
+  permissions: [
+    'clipboardWrite',
+    'cookies',
+    'storage',
+    // 'sidePanel',
+    // 'scripting',
+    // 'notifications',
+  ],
   host_permissions: ['https://lovable-api.com/*', 'https://lovable.dev/*'],
   // options_page: 'options/index.html',
   background: {
@@ -50,15 +58,15 @@ const manifest = {
   },
   content_scripts: [
     {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+      matches: ['https://lovable-api.com/*', 'https://lovable.dev/*'],
       js: ['content/index.iife.js'],
     },
     {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+      matches: ['https://lovable-api.com/*', 'https://lovable.dev/*'],
       js: ['content-ui/index.iife.js'],
     },
     {
-      matches: ['http://*/*', 'https://*/*', '<all_urls>'],
+      matches: ['https://lovable-api.com/*', 'https://lovable.dev/*'],
       css: ['content.css'],
     },
   ],
@@ -66,7 +74,7 @@ const manifest = {
   web_accessible_resources: [
     {
       resources: ['*.js', '*.css', '*.svg', 'icon-128.png', 'icon-34.png'],
-      matches: ['*://*/*'],
+      matches: ['https://lovable-api.com/*', 'https://lovable.dev/*'],
     },
   ],
   // side_panel: {
