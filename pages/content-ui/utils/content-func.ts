@@ -419,7 +419,7 @@ export function getSelectedTabFileName(tablistSelectorValue?: string | HTMLEleme
 
   const container = typeof tablistSelector === 'string' ? document.querySelector(tablistSelector) : tablistSelector;
   if (!container) {
-    console.warn('Tablist container not found:', tablistSelector);
+    // console.warn('Tablist container not found:', tablistSelector);
     return null;
   }
 

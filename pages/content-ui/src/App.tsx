@@ -4,27 +4,27 @@ import { useEffect, useState } from 'react';
 // import { exampleThemeStorage } from '@extension/storage';
 // import { t } from '@extension/i18n';
 import {
-  attachButtons,
-  findPublishButton,
+  // attachButtons,
+  // findPublishButton,
   getSelectedTabFileName,
   handleCopyClick,
   handleDownloadClick,
 } from '@utils/content-func';
 import type { MessageIndicatorProps } from '@extension/ui';
-import { cn, MessageIndicator } from '@extension/ui';
+import { cn, Logo, MessageIndicator } from '@extension/ui';
 
 export default function App() {
   const [rendered, setRendered] = useState(false);
   useEffect(() => {
-    console.log('content ui loaded');
+    // console.log('content ui loaded');
     // Observe DOM for dynamically added Publish buttons
     // const g = Cookies.
     new MutationObserver(mutations => {
       for (const mutation of mutations) {
         for (const node of Array.from(mutation.addedNodes)) {
           if (!(node instanceof HTMLElement)) continue;
-          const pubBtn = findPublishButton();
-          if (pubBtn) attachButtons(pubBtn);
+          // const pubBtn = findPublishButton();
+          // if (pubBtn) attachButtons(pubBtn);
           // setRendered(true)
         }
       }
@@ -185,19 +185,25 @@ const PopWindow = () => {
 
   return (
     <div className="flex flex-col gap-2 justify-end items-end h-fit transform transition-all duration-200 ease-out">
+      <div className="flex flex-col items-center justify-center pointer-events-none select-none" draggable="false">
+        <Logo />
+        <span className="text-[8px] text-white font-semibold">copyable</span>
+      </div>
+
       <button
         id="lvb-copy-btn"
         disabled={!enableCopy || processing.copy !== undefined}
         onClick={handleCopy}
         // className='inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none bg-secondary text-secondary-foreground shadow-sm hover:bg-muted-hover h-7 px-1 rounded-md py-1 aspect-square'
         className={cn(
-          'hover:bg-opacity-85 p-2 gap-1 rounded-md aspect-square disabled:opacity-50 flex items-center justify-center bg-blue-600 text-white font-bold  transit</svg>ion-colors duration-300 ease-out',
+          'hover:opacity-85 p-2 gap-1 rounded-md outline-pink-500 overflow-clip outline outline-2 aspect-square disabled:opacity-50 flex items-center justify-center text-white font-bold  transition-colors duration-300 ease-out',
           '',
         )}>
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 stroke-white" fill="none" viewBox="0 0 24 24">
+        <div className="absolute z-0 size-10 rounded-lg bg-gradient-to-br from-orange-500 via-pink-500 via-purple-500 to-blue-500 blur-sm" />
+        <svg xmlns="http://www.w3.org/2000/svg" className="size-5 z-10 stroke-white" fill="none" viewBox="0 0 24 24">
           <path
             d="M17.5 14H19C20.1046 14 21 13.1046 21 12V5C21 3.89543 20.1046 3 19 3H12C10.8954 3 10 3.89543 10 5V6.5M5 10H12C13.1046 10 14 10.8954 14 12V19C14 20.1046 13.1046 21 12 21H5C3.89543 21 3 20.1046 3 19V12C3 10.8954 3.89543 10 5 10Z"
-            strokeWidth="1.5"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -209,7 +215,7 @@ const PopWindow = () => {
         id="lvb-download-btn"
         disabled={processing.download !== undefined}
         onClick={handleDownload}
-        // className='inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outlin</svg>e-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none bg-secondary text-secondary-foreground shadow-sm hover:bg-muted-hover h-7 px-1 rounded-md py-1 aspect-square'
+        // className='inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none bg-secondary text-secondary-foreground shadow-sm hover:bg-muted-hover h-7 px-1 rounded-md py-1 aspect-square'
         className={cn(
           'hover:bg-opacity-85 p-2 gap-1 rounded-md aspect-square disabled:opacity-50 flex items-center justify-center bg-blue-600 text-white font-bold  transition-colors duration-300 ease-out',
           '',
